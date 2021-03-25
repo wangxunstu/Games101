@@ -57,45 +57,66 @@ bool Scene::trace(
     return (*hitObject != nullptr);
 }
 
-// Implementation of Path Tracing
-Vector3f Scene::castRay(const Ray &ray, int depth) const
+
+Vector3f Scene::Li(const Ray &ray, int depth) const
 {
-    // TO DO Implement Path Tracing Algorithm here
-    Intersection intersection = intersect(ray);
-    Vector3f hitcolor = Vector3f(0);
+	Vector3f L(0.0);
+	Vector3f pathThrought(1.0f);
+	Ray pathRay(ray.origin,ray.direction);
 
-    //deal with light source
-    if(intersection.emit.norm()>0)
-    hitcolor = Vector3f(1);
-    else if(intersection.happened)
-    {
-        Vector3f wo = normalize(-ray.direction);
-        Vector3f p = intersection.coords;
-        Vector3f N = normalize(intersection.normal);
+	for (auto bounce=0;;bounce++)
+	{
+		Intersection intersection = intersect(pathRay);
+		if (pathThrought.isZero())
+			break;
+		if(!intersection.happened || bounce>maxDepth)
+			break;
+		// Explicitly sample light sources
+		L += pathThrought*estimateDirectLight(-pathRay.direction,intersection);
 
-        float pdf_light = 0.0f;
-        Intersection inter;
-        sampleLight(inter,pdf_light);
-        Vector3f x = inter.coords;
-        Vector3f ws = normalize(x-p);
-        Vector3f NN = normalize(inter.normal);
+		Vector3f wo = normalize(-pathRay.direction);
+		Vector3f p = intersection.coords;
+		Vector3f n = normalize(intersection.normal);
+		Vector3f wi;
+		float pdf = 0.0f;
+		Vector3f f = intersection.m->sample(wo, n, wi, pdf);
 
-        Vector3f L_dir = Vector3f(0);
-        //direct light
-        if((intersect(Ray(p,ws)).coords - x).norm() < 0.01)
-        {
-            L_dir = inter.emit * intersection.m->eval(wo,ws,N)*dotProduct(ws,N) * dotProduct(-ws,NN) / (((x-p).norm()* (x-p).norm()) * pdf_light);
-        }
+		pathThrought = pathThrought* f*abs(dotProduct(wi, n)) / pdf;
+		pathRay = Ray(p + Vector3f(0.001,0.001,0.001)*wi, wi);
 
-        Vector3f L_indir = Vector3f(0);
-        float P_RR = get_random_float();
-        //indirect light
-        if(P_RR < Scene::RussianRoulette)
-        {
-            Vector3f wi = intersection.m->sample(wo,N);
-            L_indir = castRay(Ray(p,wi),depth) *intersection.m->eval(wi,wo,N) * dotProduct(wi,N) / (intersection.m->pdf(wi,wo,N)*Scene::RussianRoulette);
-        }
-        hitcolor = L_indir + L_dir;
-    }
-    return hitcolor;
+		if (bounce > 5)
+		{
+			float RR =std::min(1.0f, Vector3f::Luminance(pathThrought));
+			if (get_random_float() > RR)
+				break;
+			pathThrought =pathThrought/RR;
+		}
+	}	
+	return L;
+}
+
+Vector3f Scene::estimateDirectLight(const Vector3f& wo, const Intersection& intersection)const
+{
+	Vector3f L(0.0);
+	Vector3f p = intersection.coords;
+
+	float lightPdf=0.0f;
+	Intersection inter;
+	sampleLight(inter, lightPdf);
+	Vector3f x = inter.coords;
+	Vector3f wi = normalize(x - p);
+	Vector3f ni = normalize(inter.normal);
+	Vector3f Li = inter.emit;
+
+	lightPdf *= (dotProduct(x-p,x-p)/dotProduct(ni,-wi));
+	Vector3f f = intersection.m->eval(wi, wo, intersection.normal)*
+		                             abs(dotProduct(wi,intersection.normal));
+
+	Intersection visibility = intersect(Ray(p, wi));
+	if (!f.isZero() && (visibility.coords-x).norm()<0.0001f )
+	{
+		L += f*Li / lightPdf;
+	}
+
+	return L;
 }

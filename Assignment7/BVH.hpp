@@ -20,9 +20,9 @@ struct BVHBuildNode;
 struct BVHPrimitiveInfo;
 
 // BVHAccel Declarations
-inline int leafNodes, totalLeafNodes, totalPrimitives, interiorNodes;
+ 
 class BVHAccel {
-
+	int leafNodes, totalLeafNodes, totalPrimitives, interiorNodes;
 public:
     // BVHAccel Public Types
     enum class SplitMethod { NAIVE, SAH };

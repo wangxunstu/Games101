@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <optional>
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -198,7 +198,7 @@ namespace objl
         {
             Vertices = _Vertices;
             Indices = _Indices;
-            MeshMaterial = std::nullopt;
+          //  MeshMaterial = std::nullopt;
         }
         // Mesh Name
         std::string MeshName;
@@ -208,7 +208,7 @@ namespace objl
         std::vector<unsigned int> Indices;
 
         // Material
-        std::optional<Material> MeshMaterial;
+        Material MeshMaterial;
     };
 
     // Namespace: Math

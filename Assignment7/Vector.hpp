@@ -24,7 +24,8 @@ public:
         return Vector3f(x / n, y / n, z / n);
     }
 
-    Vector3f operator * (const Vector3f &v) const { return Vector3f(x * v.x, y * v.y, z * v.z); }
+	Vector3f operator * (const Vector3f &v) const { return Vector3f(x * v.x, y * v.y, z * v.z); }
+	Vector3f operator / (const Vector3f &v) const { return Vector3f(x / v.x, y / v.y, z / v.z); }
     Vector3f operator - (const Vector3f &v) const { return Vector3f(x - v.x, y - v.y, z - v.z); }
     Vector3f operator + (const Vector3f &v) const { return Vector3f(x + v.x, y + v.y, z + v.z); }
     Vector3f operator - () const { return Vector3f(-x, -y, -z); }
@@ -46,6 +47,12 @@ public:
         return Vector3f(std::max(p1.x, p2.x), std::max(p1.y, p2.y),
                        std::max(p1.z, p2.z));
     }
+	static float Luminance(const Vector3f& v)  { return v.x * 0.212671f + v.y * 0.715160f + v.z * 0.072169f; }
+
+	bool isZero() 
+	{
+		return x == 0 && y == 0 && z == 0;
+	}
 };
 inline double Vector3f::operator[](int index) const {
     return (&x)[index];

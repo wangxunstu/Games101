@@ -98,20 +98,20 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
     // TODO test if ray bound intersects
 
     //t  = (px - ox) / dx
-    double t1 = 0;
-    double t2 = 0;
+    float t1 = 0;
+    float t2 = 0;
     t1 = (pMin.x - ray.origin.x) * invDir.x;
     t2 = (pMax.x - ray.origin.x) * invDir.x;
-    double txmin = (dirIsNeg[0]>0)?t1:t2;
-    double txmax = (dirIsNeg[0]>0)?t2:t1;
+    float txmin = (dirIsNeg[0]>0)?t1:t2;
+    float txmax = (dirIsNeg[0]>0)?t2:t1;
     t1 = (pMin.y - ray.origin.y) * invDir.y;
     t2 = (pMax.y - ray.origin.y) * invDir.y;
-    double tymin = (dirIsNeg[1]>0)?t1:t2;
-    double tymax = (dirIsNeg[1]>0)?t2:t1;
+    float tymin = (dirIsNeg[1]>0)?t1:t2;
+    float tymax = (dirIsNeg[1]>0)?t2:t1;
     t1 = (pMin.z - ray.origin.z) * invDir.z;
     t2 = (pMax.z - ray.origin.z) * invDir.z;
-    double tzmin = (dirIsNeg[2]>0)?t1:t2;
-    double tzmax = (dirIsNeg[2]>0)?t2:t1;
+    float tzmin = (dirIsNeg[2]>0)?t1:t2;
+    float tzmax = (dirIsNeg[2]>0)?t2:t1;
     
     if((std::max(std::max(txmin,tymin),tzmin) <= std::min(std::min(txmax,tymax),tzmax)) && (std::min(std::min(txmax,tymax),tzmax)>0))
     return true;

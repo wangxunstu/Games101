@@ -18,6 +18,7 @@ struct Intersection
         distance= std::numeric_limits<double>::max();
         obj =nullptr;
         m=nullptr;
+		coords = Vector3f();
     }
     bool happened;
     Vector3f coords;

@@ -24,26 +24,34 @@ void Renderer::Render(const Scene& scene)
     Vector3f eye_pos(278, 273, -800);
     int m = 0;
 
-    bool multithread = true;
+    bool multithread = false;
 
     if(!multithread)
     {
     // change the spp value to change sample ammount
-    int spp = 8;
+    int spp = 4;
     std::cout << "SPP: " << spp << "\n";
     //#pragma omp parallel for 
     //config for the simple multithreading code
     for (uint32_t j = 0; j < scene.height; ++j) {
         for (uint32_t i = 0; i < scene.width; ++i) {
             // generate primary ray direction
-            float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-                      imageAspectRatio * scale;
-            float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
 
-            Vector3f dir = normalize(Vector3f(-x, y, 1));
             thread_local Vector3f color = Vector3f(0.0);
             for (int k = 0; k < spp; k++){
-                framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+
+				double r1 = 2 * get_random_float(), dx = r1 < 1 ? sqrt(r1) - 1 : 1 - sqrt(2 - r1);
+				double r2 = 2 * get_random_float(), dy = r2 < 1 ? sqrt(r2) - 1 : 1 - sqrt(2 - r2);
+
+				float x = (2 * (i+dx + 0.5) / (float)scene.width - 1) *
+					imageAspectRatio * scale;
+				float y = (1 - 2 * (j+dy + 0.5) / (float)scene.height) * scale;
+
+				Vector3f dir = normalize(Vector3f(-x, y, 1));
+
+
+
+                framebuffer[m] += scene.Li(Ray(eye_pos, dir), 0) / spp;  
             }
             m++;
             }
@@ -55,7 +63,7 @@ void Renderer::Render(const Scene& scene)
     {
     float total = (float)scene.width * (float)scene.height;
     // change the spp value to change sample ammount
-    int spp = 8;
+    int spp = 1;
     std::cout << "SPP: " << spp << "\n";
     #pragma omp parallel for 
     //config for the simple multithreading code
@@ -70,7 +78,7 @@ void Renderer::Render(const Scene& scene)
             thread_local Vector3f color;
             color = Vector3f(0);
             for (int k = 0; k < spp; k++){
-                color += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+                color += scene.Li(Ray(eye_pos, dir), 0) / spp;  
             }
             framebuffer[j*scene.width + i]+= color;
             #pragma omp critical
@@ -85,7 +93,7 @@ void Renderer::Render(const Scene& scene)
 
 
     // save framebuffer to file
-    FILE* fp = fopen("binary.ppm", "wb");
+    FILE* fp = fopen("image11234.ppm", "wb");
     (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
     for (auto i = 0; i < scene.height * scene.width; ++i) {
         static unsigned char color[3];
